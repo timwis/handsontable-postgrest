@@ -34,10 +34,5 @@ schema.fetch({
         new Grid(container, schemaCollection, collection) // eslint-disable-line
       }
     })
-
-    gridCollection.on('change', function (model) {
-      var changes = _.clone(model._changed)
-      model.save(changes, {patch: true})
-    })
   }
 })

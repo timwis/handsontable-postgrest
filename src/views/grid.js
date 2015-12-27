@@ -7,7 +7,7 @@ function columns (schema) {
     return {
       data: function (row, val) {
         if (val !== undefined) {
-          row[column.name] = val
+          row.save(column.name, val, {patch: true})
         }
         return row[column.name]
       },
@@ -22,7 +22,7 @@ module.exports = function (container, schema, data) {
     columns: columns(schema),
     contextMenu: true,
     colHeaders: schema.pluck('name'),
-    rowHeaders: true,
+    // rowHeaders: true,
     minSpareCols: 1,
     minSpareRows: 1,
     columnSorting: true,
