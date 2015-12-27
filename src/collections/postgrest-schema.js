@@ -1,8 +1,8 @@
 var AmpersandRestCollection = require('ampersand-rest-collection')
-var Column = require('../models/column')
+var PostgRESTColumn = require('../models/postgrest-column')
 
 module.exports = AmpersandRestCollection.extend({
-  model: Column,
+  model: PostgRESTColumn,
   initialize: function (models, options) {
     options = options || {}
     this.table = options.table || ''

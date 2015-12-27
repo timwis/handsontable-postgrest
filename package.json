@@ -1,11 +1,11 @@
 {
-  "name": "handsontable-ampersand",
+  "name": "handsontable-postgrest",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "standard ./src/*.js ./src/**/*.js | snazzy",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard ./src/*.js ./src/**/*.js | snazzy && mocha test",
+    "start": "webpack-dev-server"
   },
   "author": "",
   "license": "MIT",
@@ -16,8 +16,12 @@
     "lodash": "^3.10.1"
   },
   "devDependencies": {
+    "mocha": "^2.3.4",
+    "should": "^8.0.2",
+    "sinon": "^1.17.2",
     "snazzy": "^2.0.1",
     "standard": "^5.4.1",
-    "webpack": "^1.12.9"
+    "webpack": "^1.12.9",
+    "webpack-dev-server": "^1.14.0"
   }
 }

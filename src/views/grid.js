@@ -10,7 +10,8 @@ function columns (schema) {
           row[column.name] = val
         }
         return row[column.name]
-      }
+      },
+      readOnly: column.name === schema.primaryKey
     }
   })
 }
@@ -23,6 +24,14 @@ module.exports = function (container, schema, data) {
     colHeaders: schema.pluck('name'),
     rowHeaders: true,
     minSpareCols: 1,
-    minSpareRows: 1
+    minSpareRows: 1,
+    columnSorting: true,
+    observeChanges: false, // fix handsontable backbone issue https://github.com/handsontable/handsontable/issues/2609
+    sortIndicator: true,
+    manualColumnResize: true,
+    manualColumnMove: true,
+    manualRowMove: true,
+    fillHandle: false, // seems to crash postgres when enabled
+    persistentState: true
   })
 }
