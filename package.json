@@ -10,10 +10,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "ampersand-model": "^6.0.2",
-    "ampersand-rest-collection": "^5.0.0",
     "handsontable": "github:handsontable/handsontable",
-    "lodash": "^3.10.1"
+    "lodash": "^3.10.1",
+    "promise": "^7.1.1",
+    "then-request": "^2.1.1"
   },
   "devDependencies": {
     "mocha": "^2.3.4",
