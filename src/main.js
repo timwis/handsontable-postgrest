@@ -1,11 +1,14 @@
 var request = require('then-request')
 var Promise = require('promise')
 var Handsontable = require('handsontable')
-var _ = { pluck: require('lodash/collection/pluck') }
+var _ = {
+  pluck: require('lodash/collection/pluck'),
+  groupBy: require('lodash/collection/groupBy')
+}
 
 var container = document.querySelector('#grid')
-var baseUrl = 'http://postgrest.herokuapp.com'
-var table = 'speakers'
+var baseUrl = 'http://phlcrud.herokuapp.com'
+var table = 'candidates'
 
 // Get schema
 Promise.all([
@@ -32,43 +35,50 @@ Promise.all([
     minSpareRows: 1,
     afterChange: function (changes, source) {
       if (['edit', 'empty', 'autofill', 'paste'].indexOf(source) !== -1) {
+        // Group changes by row and construct a hash of each row's changes
+        var changesByRow = {}
         changes.forEach(function (change) {
           var rowIndex = change[0]
-          var identifier = this.getDataAtRowProp(rowIndex, primaryKey)
           var property = change[1]
           var newValue = change[3]
 
-          var changes = {}
-          changes[property] = newValue
+          if (!changesByRow[rowIndex]) changesByRow[rowIndex] = {}
+          changesByRow[rowIndex][property] = newValue
+        })
+
+        // Send a request for each row that's changed
+        for (var rowIndex in changesByRow) {
+          var rowChanges = changesByRow[rowIndex]
+          var identifier = this.getDataAtRowProp(rowIndex, primaryKey)
 
           if (identifier) {
+            // If there's an identifier already, edit the record
             var qs = {}
             qs[primaryKey] = 'eq.' + identifier
 
             request('PATCH', baseUrl + '/' + table, {
               qs: qs,
-              json: changes
+              json: rowChanges
             })
           } else {
+            // If there's no identifier, create the record
             var context = this
             request('POST', baseUrl + '/' + table, {
-              json: changes
+              json: rowChanges,
+              headers: {Prefer: 'return=representation'}  // return the new record
             })
             .then(function (createRecordResponse) {
-              request('GET', baseUrl + createRecordResponse.headers.location)
-              .then(function (getNewRecordResponse) {
-                var newData = JSON.parse(getNewRecordResponse.getBody())[0]
-                for (var key in newData) {
-                  context.setDataAtRowProp(rowIndex, key, newData[key], 'loadData')
-                }
-              })
+              // Set the data in the table based on the new record's data (ex. auto generated ID)
+              var newData = JSON.parse(createRecordResponse.getBody())
+              for (var key in newData) {
+                context.setDataAtRowProp(rowIndex, key, newData[key], 'loadData')
+              }
             })
           }
-        }, this)
+        }
       }
     },
     beforeRemoveRow: function (index, amount, logicRows) {
-      console.log('removing', logicRows)
       logicRows.forEach(function (row) {
         var identifier = this.getDataAtRowProp(row, primaryKey)
 
