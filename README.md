@@ -1,6 +1,5 @@
 # Handsontable PostgREST
-An excel-like database table editor using [Handsontable](http://handsontable.com) + 
-[AmpersandJS](http://ampersandjs.com) + [PostgREST](http://postgrest.com)
+An excel-like database table editor using [Handsontable](http://handsontable.com) and [PostgREST](http://postgrest.com)
 
 # Installation
 Clone the repository and install dependencies via `npm install`
