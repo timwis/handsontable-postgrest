@@ -34,65 +34,68 @@ Promise.all([
     colHeaders: headers,
     contextMenu: true,
     minSpareRows: 1,
+    undo: true,
     afterChange: function (changes, source) {
       var context = this
-      if (['edit', 'empty', 'autofill', 'paste'].indexOf(source) !== -1) {
-        // Group changes by row and construct a hash of each row's changes
-        var changesByRow = {}
-        changes.forEach(function (change) {
-          var rowIndex = change[0]
-          var property = change[1]
-          var newValue = change[3]
+      // Only listen to changes from certain sources
+      if (['edit', 'empty', 'autofill', 'paste', 'undo', 'redo'].indexOf(source) === -1) {
+        return
+      }
+      // Group changes by row and construct a hash of each row's changes
+      var changesByRow = {}
+      changes.forEach(function (change) {
+        var rowIndex = change[0]
+        var property = change[1]
+        var newValue = change[3]
 
-          if (!changesByRow[rowIndex]) changesByRow[rowIndex] = {}
-          changesByRow[rowIndex][property] = newValue
+        if (!changesByRow[rowIndex]) changesByRow[rowIndex] = {}
+        changesByRow[rowIndex][property] = newValue
 
-          // Show loading indicator on cell
-          var colIndex = this.propToCol(property)
-          this.getCell(rowIndex, colIndex).classList.toggle('syncing', true)
-        }, this)
+        // Show loading indicator on cell
+        var colIndex = this.propToCol(property)
+        this.getCell(rowIndex, colIndex).classList.toggle('syncing', true)
+      }, this)
 
-        // Send a request for each row that's changed
-        for (var rowIndex in changesByRow) {
-          var rowChanges = changesByRow[rowIndex]
-          var identifier = this.getDataAtRowProp(rowIndex, primaryKey)
+      // Send a request for each row that's changed
+      for (var rowIndex in changesByRow) {
+        var rowChanges = changesByRow[rowIndex]
+        var identifier = this.getDataAtRowProp(rowIndex, primaryKey)
 
-          if (identifier) {
-            // If there's an identifier already, edit the record
-            var qs = {}
-            qs[primaryKey] = 'eq.' + identifier
+        if (identifier) {
+          // If there's an identifier already, edit the record
+          var qs = {}
+          qs[primaryKey] = 'eq.' + identifier
 
-            setPendingRequests(1)
-            request('PATCH', baseUrl + '/' + table, {
-              qs: qs,
-              json: rowChanges
-            })
-            .then(function () {
-              setPendingRequests(-1)
+          setPendingRequests(1)
+          request('PATCH', baseUrl + '/' + table, {
+            qs: qs,
+            json: rowChanges
+          })
+          .then(function () {
+            setPendingRequests(-1)
 
-              // Remove loading indicator from every cell in this row (NodeLists are fun!....)
-              var syncingCells = context.getCell(rowIndex, 0).parentNode.querySelectorAll('.syncing')
-              for (var i = 0; i < syncingCells.length; i++) {
-                syncingCells[i].classList.toggle('syncing', false)
-              }
-            })
-          } else {
-            // If there's no identifier, create the record
-            setPendingRequests(1)
-            request('POST', baseUrl + '/' + table, {
-              json: rowChanges,
-              headers: {Prefer: 'return=representation'}  // return the new record
-            })
-            .then(function (createRecordResponse) {
-              setPendingRequests(-1)
+            // Remove loading indicator from every cell in this row (NodeLists are fun!....)
+            var syncingCells = context.getCell(rowIndex, 0).parentNode.querySelectorAll('.syncing')
+            for (var i = 0; i < syncingCells.length; i++) {
+              syncingCells[i].classList.toggle('syncing', false)
+            }
+          })
+        } else {
+          // If there's no identifier, create the record
+          setPendingRequests(1)
+          request('POST', baseUrl + '/' + table, {
+            json: rowChanges,
+            headers: {Prefer: 'return=representation'}  // return the new record
+          })
+          .then(function (createRecordResponse) {
+            setPendingRequests(-1)
 
-              // Set the data in the table based on the new record's data (ex. auto generated ID)
-              var newData = JSON.parse(createRecordResponse.getBody())
-              for (var key in newData) {
-                context.setDataAtRowProp(rowIndex, key, newData[key], 'loadData')
-              }
-            })
-          }
+            // Set the data in the table based on the new record's data (ex. auto generated ID)
+            var newData = JSON.parse(createRecordResponse.getBody())
+            for (var key in newData) {
+              context.setDataAtRowProp(rowIndex, key, newData[key], 'loadData')
+            }
+          })
         }
       }
     },
