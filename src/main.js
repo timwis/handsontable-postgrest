@@ -1,22 +1,26 @@
 var request = require('then-request')
 var Promise = require('promise')
 var Handsontable = require('handsontable')
+var NProgress = require('nprogress')
+;require('nprogress/nprogress.css')
+;require('./styles/main.css')
 var _ = {
   pluck: require('lodash/collection/pluck'),
   groupBy: require('lodash/collection/groupBy')
 }
-;require('./styles/main.css')
 
 var container = document.querySelector('#grid')
 var baseUrl = 'http://phlcrud.herokuapp.com'
 var table = 'candidates'
 
 // Get schema and rows
+NProgress.start()
 Promise.all([
   request('OPTIONS', baseUrl + '/' + table),
   request('GET', baseUrl + '/' + table)
 ])
 .then(function (responses) {
+  NProgress.done()
   var schema = JSON.parse(responses[0].getBody())
   var rows = JSON.parse(responses[1].getBody())
   var primaryKey = schema.pkey[0]
