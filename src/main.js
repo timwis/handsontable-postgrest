@@ -5,6 +5,7 @@ var _ = {
   pluck: require('lodash/collection/pluck'),
   groupBy: require('lodash/collection/groupBy')
 }
+;require('./styles/main.css')
 
 var container = document.querySelector('#grid')
 var baseUrl = 'http://phlcrud.herokuapp.com'
@@ -34,6 +35,7 @@ Promise.all([
     contextMenu: true,
     minSpareRows: 1,
     afterChange: function (changes, source) {
+      var context = this
       if (['edit', 'empty', 'autofill', 'paste'].indexOf(source) !== -1) {
         // Group changes by row and construct a hash of each row's changes
         var changesByRow = {}
@@ -44,7 +46,11 @@ Promise.all([
 
           if (!changesByRow[rowIndex]) changesByRow[rowIndex] = {}
           changesByRow[rowIndex][property] = newValue
-        })
+
+          // Show loading indicator on cell
+          var colIndex = this.propToCol(property)
+          this.getCell(rowIndex, colIndex).classList.toggle('syncing', true)
+        }, this)
 
         // Send a request for each row that's changed
         for (var rowIndex in changesByRow) {
@@ -60,9 +66,15 @@ Promise.all([
               qs: qs,
               json: rowChanges
             })
+            .then(function () {
+              // Remove loading indicator from every cell in this row (NodeLists are fun!....)
+              var syncingCells = context.getCell(rowIndex, 0).parentNode.querySelectorAll('.syncing')
+              for (var i = 0; i < syncingCells.length; i++) {
+                syncingCells[i].classList.toggle('syncing', false)
+              }
+            })
           } else {
             // If there's no identifier, create the record
-            var context = this
             request('POST', baseUrl + '/' + table, {
               json: rowChanges,
               headers: {Prefer: 'return=representation'}  // return the new record

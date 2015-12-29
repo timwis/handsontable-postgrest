@@ -13,5 +13,10 @@ module.exports = {
   })],
   externals: {
     handsontable: 'Handsontable'
+  },
+  module: {
+    loaders: [
+      { test: /\.css$/, loader: 'style-loader!css-loader' }
+    ]
   }
 }

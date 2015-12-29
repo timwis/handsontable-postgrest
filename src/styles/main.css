@@ -1,0 +1,12 @@
+.syncing {
+  position: relative;
+}
+
+.syncing:before {
+  content:'';
+  border-top: 5px solid red;
+  border-right: 5px solid transparent;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
