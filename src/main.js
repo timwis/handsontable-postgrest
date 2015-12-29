@@ -11,7 +11,7 @@ var container = document.querySelector('#grid')
 var baseUrl = 'http://phlcrud.herokuapp.com'
 var table = 'candidates'
 
-// Get schema
+// Get schema and rows
 Promise.all([
   request('OPTIONS', baseUrl + '/' + table),
   request('GET', baseUrl + '/' + table)
@@ -62,11 +62,14 @@ Promise.all([
             var qs = {}
             qs[primaryKey] = 'eq.' + identifier
 
+            setPendingRequests(1)
             request('PATCH', baseUrl + '/' + table, {
               qs: qs,
               json: rowChanges
             })
             .then(function () {
+              setPendingRequests(-1)
+
               // Remove loading indicator from every cell in this row (NodeLists are fun!....)
               var syncingCells = context.getCell(rowIndex, 0).parentNode.querySelectorAll('.syncing')
               for (var i = 0; i < syncingCells.length; i++) {
@@ -75,11 +78,14 @@ Promise.all([
             })
           } else {
             // If there's no identifier, create the record
+            setPendingRequests(1)
             request('POST', baseUrl + '/' + table, {
               json: rowChanges,
               headers: {Prefer: 'return=representation'}  // return the new record
             })
             .then(function (createRecordResponse) {
+              setPendingRequests(-1)
+
               // Set the data in the table based on the new record's data (ex. auto generated ID)
               var newData = JSON.parse(createRecordResponse.getBody())
               for (var key in newData) {
@@ -96,10 +102,27 @@ Promise.all([
 
         var qs = {}
         qs[primaryKey] = 'eq.' + identifier
+
+        setPendingRequests(1)
         request('DELETE', baseUrl + '/' + table, {
           qs: qs
+        })
+        .then(function () {
+          setPendingRequests(-1)
         })
       }, this)
     }
   })
 })
+
+var pendingRequests = 0
+var setPendingRequests = function (increment) {
+  pendingRequests += increment
+  if (pendingRequests < 1) {
+    window.onbeforeunload = undefined
+  } else {
+    window.onbeforeunload = function () {
+      return "There are changes that haven't been saved yet"
+    }
+  }
+}
