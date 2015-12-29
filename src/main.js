@@ -75,15 +75,17 @@ Promise.all([
             qs: qs,
             json: rowChanges
           })
-          .then(function () {
-            setPendingRequests(-1)
+          .then(function (scopedRowIndex) { // necessary because rowIndex gets changed by the for..in loop
+            return function () {
+              setPendingRequests(-1)
 
-            // Remove loading indicator from every cell in this row (NodeLists are fun!....)
-            var syncingCells = context.getCell(rowIndex, 0).parentNode.querySelectorAll('.syncing')
-            for (var i = 0; i < syncingCells.length; i++) {
-              syncingCells[i].classList.toggle('syncing', false)
+              // Remove loading indicator from every cell in this row (NodeLists are fun!....)
+              var syncingCells = context.getCell(scopedRowIndex, 0).parentNode.querySelectorAll('.syncing')
+              for (var i = 0; i < syncingCells.length; i++) {
+                syncingCells[i].classList.toggle('syncing', false)
+              }
             }
-          })
+          }(rowIndex))
         } else {
           // If there's no identifier, create the record
           setPendingRequests(1)
@@ -91,15 +93,17 @@ Promise.all([
             json: rowChanges,
             headers: {Prefer: 'return=representation'}  // return the new record
           })
-          .then(function (createRecordResponse) {
-            setPendingRequests(-1)
+          .then(function (scopedRowIndex) {
+            return function (createRecordResponse) {
+              setPendingRequests(-1)
 
-            // Set the data in the table based on the new record's data (ex. auto generated ID)
-            var newData = JSON.parse(createRecordResponse.getBody())
-            for (var key in newData) {
-              context.setDataAtRowProp(rowIndex, key, newData[key], 'loadData')
+              // Set the data in the table based on the new record's data (ex. auto generated ID)
+              var newData = JSON.parse(createRecordResponse.getBody())
+              for (var key in newData) {
+                context.setDataAtRowProp(scopedRowIndex, key, newData[key], 'loadData')
+              }
             }
-          })
+          }(rowIndex))
         }
       }
     },
