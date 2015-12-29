@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "standard ./src/*.js ./src/**/*.js | snazzy && mocha test",
-    "start": "webpack-dev-server"
+    "start": "webpack-dev-server",
+    "build": "webpack -p",
+    "deploy": "npm run build && ./deploy.sh"
   },
   "author": "",
   "license": "MIT",
