@@ -39,6 +39,9 @@ Promise.all([
     contextMenu: true,
     minSpareRows: 1,
     undo: true,
+    columnSorting: true,
+    sortIndicator: true,
+    persistentState: true,
     afterChange: function (changes, source) {
       var context = this
       // Only listen to changes from certain sources
