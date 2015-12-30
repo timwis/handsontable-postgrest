@@ -108,8 +108,8 @@ Promise.all([
       }
     },
     beforeRemoveRow: function (index, amount, logicRows) {
-      logicRows.forEach(function (row) {
-        var identifier = this.getDataAtRowProp(row, primaryKey)
+      for (var rowIndex = index; rowIndex < index + amount; rowIndex++) {
+        var identifier = this.getDataAtRowProp(rowIndex, primaryKey)
 
         var qs = {}
         qs[primaryKey] = 'eq.' + identifier
@@ -121,7 +121,7 @@ Promise.all([
         .then(function () {
           setPendingRequests(-1)
         })
-      }, this)
+      }
     }
   })
 })
