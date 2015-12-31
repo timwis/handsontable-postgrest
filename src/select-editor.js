@@ -3,6 +3,7 @@
  *  or an object where the keys represent the value attribute and the values represent the label/text
  */
 var Handsontable = require('handsontable')
+var Promise = require('promise')
 ;require('./styles/select-editor.css')
 
 var SelectEditor = Handsontable.editors.BaseEditor.prototype.extend()
@@ -22,13 +23,12 @@ SelectEditor.prototype.prepare = function () {
   var optionsPromise
 
   if (typeof source === 'function') {
-    optionsPromise = source(this.row, this.col, this.prop)
+    optionsPromise = Promise.resolve(source(this.row, this.col, this.prop))
   } else {
-    optionsPromise = source
+    optionsPromise = Promise.resolve(source)
   }
 
   var context = this
-  if (optionsPromise.then === undefined) optionsPromise.then = function (callback) { callback(optionsPromise) } // Gotta be a better way...
 
   optionsPromise.then(function (options) {
     Handsontable.Dom.empty(context.select) // clear select of existing options
