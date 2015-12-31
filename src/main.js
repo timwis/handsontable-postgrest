@@ -2,6 +2,7 @@ var request = require('then-request')
 var Promise = require('promise')
 var Handsontable = require('handsontable')
 var NProgress = require('nprogress')
+;require('./select-editor')
 ;require('nprogress/nprogress.css')
 ;require('./styles/main.css')
 var _ = {
@@ -25,11 +26,25 @@ Promise.all([
   var rows = JSON.parse(responses[1].getBody())
   var primaryKey = schema.pkey[0]
   var headers = _.pluck(schema.columns, 'name')
-  var columns = headers.map(function (header) {
-    return {
-      data: header,
-      readOnly: header === primaryKey
+  var columns = schema.columns.map(function (column) {
+    var columnConfig = {
+      data: column.name,
+      readOnly: column.name === primaryKey
     }
+    if (column.references) {
+      columnConfig.editor = 'select'
+      columnConfig.source = function (query, callback) { // returns promise
+        return request('GET', baseUrl + '/' + column.references.table)
+        .then(function (response) {
+          var rows = JSON.parse(response.getBody())
+          return rows.reduce(function (hash, item) {
+            hash[item[column.references.column]] = item.name // HARD-CODED
+            return hash
+          }, {})
+        })
+      }
+    }
+    return columnConfig
   })
 
   Handsontable(container, {

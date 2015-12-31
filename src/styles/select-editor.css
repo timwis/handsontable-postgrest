@@ -1,0 +1,6 @@
+.select-editor {
+  padding: 5px 7px;
+  position: absolute;
+  /* Enables changing <select> dimensions in webkit browsers */
+  -webkit-appearance: menulist-button !important;
+}
