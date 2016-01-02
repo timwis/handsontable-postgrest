@@ -7,7 +7,8 @@ var NProgress = require('nprogress')
 ;require('./styles/main.css')
 var _ = {
   pluck: require('lodash/collection/pluck'),
-  groupBy: require('lodash/collection/groupBy')
+  groupBy: require('lodash/collection/groupBy'),
+  findWhere: require('lodash/collection/findWhere')
 }
 
 var container = document.querySelector('#grid')
@@ -82,11 +83,17 @@ request('OPTIONS', baseUrl + '/' + table)
         changes.forEach(function (change) {
           var rowIndex = change[0]
           var property = change[1]
-          var updateProperty = property.split('.')[0] // only get first property in dot-notation string
+          // var updateProperty = property.split('.')[0] // only get first property in dot-notation string
           var newValue = change[3]
 
+          // If property is a foreign entity, get its primary key
+          var column = _.findWhere(schema.columns, {name: property})
+          if (column && column.references) {
+            newValue = change[3][column.references.column]
+          }
+
           if (!changesByRow[rowIndex]) changesByRow[rowIndex] = {}
-          changesByRow[rowIndex][updateProperty] = newValue
+          changesByRow[rowIndex][property] = newValue
 
           // Show loading indicator on cell
           var colIndex = this.propToCol(property)
@@ -186,6 +193,6 @@ var constructSelectParam = function (schema) {
 }
 
 var kvRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-  Handsontable.Dom.fastInnerHTML(td, value.name)
+  if (value && value.name) Handsontable.Dom.fastInnerHTML(td, value.name)
   return td
 }
