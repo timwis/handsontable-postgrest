@@ -72,10 +72,11 @@ request('OPTIONS', baseUrl + '/' + table)
         changes.forEach(function (change) {
           var rowIndex = change[0]
           var property = change[1]
+          var updateProperty = property.split('.')[0] // only get first property in dot-notation string
           var newValue = change[3]
 
           if (!changesByRow[rowIndex]) changesByRow[rowIndex] = {}
-          changesByRow[rowIndex][property] = newValue
+          changesByRow[rowIndex][updateProperty] = newValue
 
           // Show loading indicator on cell
           var colIndex = this.propToCol(property)
