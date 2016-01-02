@@ -4,6 +4,7 @@
  */
 var Handsontable = require('handsontable')
 var Promise = require('promise')
+var _ = {extend: require('lodash/object/extend')}
 ;require('./styles/select-editor.css')
 
 var SelectEditor = Handsontable.editors.BaseEditor.prototype.extend()
@@ -52,18 +53,33 @@ SelectEditor.prototype.prepare = function () {
     }, context)
 
     if (currentValue) {
-      context.select.value = currentValue
+      // context.select.value = currentValue.id
+      // console.log(currentValue, context.select.value)
     }
   })
 }
 
 SelectEditor.prototype.getValue = function () {
-  return this.select.value
+  return {
+    id: this.select.value,
+    jurisdiction: null,
+    name: this.select.options[this.select.selectedIndex].text
+  }
 }
 
 SelectEditor.prototype.setValue = function (value) {
-  this.select.value = value
+  this.select.value = value.id
 }
+
+SelectEditor.prototype.beginEditing = function (initialValue, event) {
+  var newValue = typeof initialValue === 'string' ? initialValue : this.originalValue
+  Handsontable.editors.BaseEditor.prototype.beginEditing.apply(this, arguments) // call parent method
+  this.setValue(newValue) // technically this is the second time it's called, since parent calls it
+}
+
+// SelectEditor.prototype.saveValue = function () {
+//   console.log('saving', arguments)
+// }
 
 SelectEditor.prototype.open = function () {
   var width = Handsontable.Dom.outerWidth(this.TD)

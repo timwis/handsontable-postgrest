@@ -2,6 +2,7 @@ var request = require('then-request')
 var Handsontable = require('handsontable')
 var NProgress = require('nprogress')
 ;require('./select-editor')
+// ;require('./kvselect')
 ;require('nprogress/nprogress.css')
 ;require('./styles/main.css')
 var _ = {
@@ -24,22 +25,30 @@ request('OPTIONS', baseUrl + '/' + table)
 
   var columns = schema.columns.map(function (column) {
     var columnConfig = {
-      data: column.references ? column.name + '.name' : column.name, // SHOULD NOT BE HARD-CODED
+      // data: column.references ? column.name + '.name' : column.name, // SHOULD NOT BE HARD-CODED
+      data: column.name,
       readOnly: column.name === primaryKey
     }
     // Editor
     if (column.references) {
+      columnConfig.renderer = kvRenderer
       columnConfig.editor = 'select'
-      columnConfig.source = function (query, callback) { // returns promise
-        return request('GET', baseUrl + '/' + column.references.table)
-        .then(function (response) {
-          var rows = JSON.parse(response.getBody())
-          return rows.reduce(function (hash, item) {
-            hash[item[column.references.column]] = item.name // SHOULD NOT BE HARD-CODED
-            return hash
-          }, {})
-        })
-      }
+      // columnConfig.type = 'handsontable'
+      // columnConfig.handsontable = {
+      //   data: [{id: 1, name: 'President'}, {id: 2, name: 'Mayor'}, {id: 8, name: 'Governor'}]
+      // }
+      // columnConfig.source = ['President', 'Mayor', 'Governor']
+      columnConfig.source = {1: 'President', 2: 'Mayor', 8: 'Governor'}
+      // columnConfig.source = function (query, callback) { // returns promise
+      //   return request('GET', baseUrl + '/' + column.references.table)
+      //   .then(function (response) {
+      //     var rows = JSON.parse(response.getBody())
+      //     return rows.reduce(function (hash, item) {
+      //       hash[item[column.references.column]] = item.name // SHOULD NOT BE HARD-CODED
+      //       return hash
+      //     }, {})
+      //   })
+      // }
     }
     return columnConfig
   })
@@ -63,6 +72,7 @@ request('OPTIONS', baseUrl + '/' + table)
       persistentState: true,
       afterChange: function (changes, source) {
         var context = this
+        console.log(changes, source)
         // Only listen to changes from certain sources
         if (['edit', 'empty', 'autofill', 'paste', 'undo', 'redo'].indexOf(source) === -1) {
           return
@@ -173,4 +183,9 @@ var constructSelectParam = function (schema) {
   } else {
     return ''
   }
+}
+
+var kvRenderer = function (instance, td, row, col, prop, value, cellProperties) {
+  Handsontable.Dom.fastInnerHTML(td, value.name)
+  return td
 }
