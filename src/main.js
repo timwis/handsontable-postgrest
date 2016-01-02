@@ -1,7 +1,7 @@
 var request = require('then-request')
 var Handsontable = require('handsontable')
 var NProgress = require('nprogress')
-;require('./select-editor')
+;require('./keyvalselect-editor')
 // ;require('./kvselect')
 ;require('nprogress/nprogress.css')
 ;require('./styles/main.css')
@@ -32,14 +32,22 @@ request('OPTIONS', baseUrl + '/' + table)
     }
     // Editor
     if (column.references) {
-      columnConfig.renderer = kvRenderer
-      columnConfig.editor = 'select'
+      // columnConfig.data = function (dataObject) {
+      //   var foreignObject = dataObject[column.name]
+      //   return foreignObject ? {
+      //     key: foreignObject.id, // HARD-CODED
+      //     value: foreignObject.name // HARD-CODED
+      //   } : {}
+      // }
+      // columnConfig.renderer = kvRenderer
+      // columnConfig.editor = 'select'
+      columnConfig.type = 'keyvalselect'
       // columnConfig.type = 'handsontable'
       // columnConfig.handsontable = {
       //   data: [{id: 1, name: 'President'}, {id: 2, name: 'Mayor'}, {id: 8, name: 'Governor'}]
       // }
       // columnConfig.source = ['President', 'Mayor', 'Governor']
-      columnConfig.source = {1: 'President', 2: 'Mayor', 8: 'Governor'}
+      columnConfig.selectOptions = {1: 'President', 2: 'Mayor', 8: 'Governor'}
       // columnConfig.source = function (query, callback) { // returns promise
       //   return request('GET', baseUrl + '/' + column.references.table)
       //   .then(function (response) {
@@ -190,9 +198,4 @@ var constructSelectParam = function (schema) {
   } else {
     return ''
   }
-}
-
-var kvRenderer = function (instance, td, row, col, prop, value, cellProperties) {
-  if (value && value.name) Handsontable.Dom.fastInnerHTML(td, value.name)
-  return td
 }
