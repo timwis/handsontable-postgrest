@@ -60,7 +60,7 @@ SelectEditor.prototype.prepare = function () {
 }
 
 SelectEditor.prototype.getValue = function () {
-  return {
+  return { // doesn't work when originalValue is empty
     id: this.select.value,
     jurisdiction: null,
     name: this.select.options[this.select.selectedIndex].text
@@ -68,13 +68,13 @@ SelectEditor.prototype.getValue = function () {
 }
 
 SelectEditor.prototype.setValue = function (value) {
-  this.select.value = value.id
+  this.select.value = value && value.id ? value.id : ''
 }
 
 SelectEditor.prototype.beginEditing = function (initialValue, event) {
   var newValue = typeof initialValue === 'string' ? initialValue : this.originalValue
   Handsontable.editors.BaseEditor.prototype.beginEditing.apply(this, arguments) // call parent method
-  this.setValue(newValue) // technically this is the second time it's called, since parent calls it
+  this.setValue(newValue) // technically this is the second time it's called, since parent calls it (with stringify)
 }
 
 // SelectEditor.prototype.saveValue = function () {
