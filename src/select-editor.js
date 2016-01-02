@@ -23,14 +23,14 @@ SelectEditor.prototype.prepare = function () {
   var optionsPromise
 
   if (typeof source === 'function') {
-    optionsPromise = Promise.resolve(source(this.row, this.col, this.prop))
+    optionsPromise = source(this.row, this.col, this.prop)
   } else {
-    optionsPromise = Promise.resolve(source)
+    optionsPromise = source
   }
 
   var context = this
 
-  optionsPromise.then(function (options) {
+  Promise.resolve(optionsPromise).then(function (options) {
     Handsontable.Dom.empty(context.select) // clear select of existing options
 
     // Convert object to array of objects

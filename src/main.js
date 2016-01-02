@@ -1,5 +1,4 @@
 var request = require('then-request')
-var Promise = require('promise')
 var Handsontable = require('handsontable')
 var NProgress = require('nprogress')
 ;require('./select-editor')
